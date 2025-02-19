@@ -1,4 +1,4 @@
-from smarthouse.domain import Aktuator, Sensor, SmartHouse
+from smarthouse.domain import SmartHouse, Aktuator, Sensor
 
 DEMO_HOUSE = SmartHouse()
 
