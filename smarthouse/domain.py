@@ -1,4 +1,7 @@
 from codecs import raw_unicode_escape_decode
+from datetime import time
+from pickle import FALSE
+import random
 
 
 class Measurement:
@@ -12,13 +15,6 @@ class Measurement:
         self.unit = unit
 
 
-class Building(SmartHouse):
-    def __init__(self, name = None):
-        self.name = name
-        self.floors = []
-    
-    def addFloor(self, floor):
-        self.floors.append(floor)
 
 class Floor:
     def __init__(self, level):
@@ -43,16 +39,30 @@ class Room:
         self.devices.append(device)
         
 class Device:
-    def __init__(self, id, producer, model, nickname, deviceType):
+    def __init__(self, id, supplier, model_name, nickname, deviceType):
         self.id = id
-        self.producer = producer
-        self.model = model
+        self.supplier = supplier
+        self.model_name = model_name
         self.nickname = nickname
         self.deviceType = deviceType
+    
+    def is_actuator(self):
+        if self.deviceType == 'aktuator':
+            return True
+        return False
+    
+    def is_sensor(self):
+        if self.deviceType == 'sensor':
+            return True
+        return False
+    
+    def get_device_type(self):
+        return self.nickname
 
 class Sensor(Device):
-    def __init__(self, id, producer, model, nickname, deviceType = 'sensor'):
+    def __init__(self, id, producer, model, nickname, unit, deviceType = 'sensor'):
         super().__init__(id, producer, model, nickname, deviceType)
+        self.unit = unit
         self.measureHistory = []
         
     def lastMeasure(self):
@@ -60,7 +70,13 @@ class Sensor(Device):
             return self.measureHistory[-1]
         return None
     
-    def addMeasure(self, Measurement):
+    def add_measure(self):
+        timestamp = time.time()
+        value = random.randint(0,100)
+        measure = Measurement(timestamp, value, self.unit)
+        self.add_measure_known(measure)
+
+    def add_measure_known(self, Measurement):
         self.measureHistory.append(Measurement)
 
 class Aktuator(Device):
@@ -68,11 +84,16 @@ class Aktuator(Device):
         super().__init__(id, producer, model, nickname, deviceType)
         self.state = 0
         
-    def changeState(self, newState):
-        self.state = newState
+    def turn_on(self):
+        self.state = True
+    
+    def turn_off(self):
+        self.state = False
         
-    def getState(self):
-        return self.state
+    def is_active(self):
+        if self.state != 0:
+            return True
+        return False
         
 class SmartHouse:
     """
@@ -83,6 +104,9 @@ class SmartHouse:
     The SmartHouse class provides functionality to register rooms and floors (i.e. changing the 
     house's physical layout) as well as register and modify smart devices and their state.
     """
+    def __init__(self, name = None):
+        self.name = name
+        self.floors = []
 
     def register_floor(self, level):
         """
@@ -91,6 +115,7 @@ class SmartHouse:
         """
         
         floor = Floor(level)
+        self.floors.append(floor)
         return floor
         
 
@@ -101,7 +126,7 @@ class SmartHouse:
         """
         room = Room(room_size, floor, room_name)
         floor.addRoom(room)
-        pass
+        return room
 
 
     def get_floors(self):
@@ -145,7 +170,7 @@ class SmartHouse:
         This methods registers a given device in a given room.
         """
         room.addDevice(device)
-        pass
+        return device
 
     
     def get_device(self, device_id):
