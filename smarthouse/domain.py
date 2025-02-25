@@ -1,6 +1,5 @@
 from codecs import raw_unicode_escape_decode
 from datetime import time
-from pickle import FALSE
 import random
 
 
@@ -21,11 +20,11 @@ class Floor:
         self.level = level
         self.rooms = []
         
-    def getArea(self):
+    def get_area(self):
         total_area = sum(room.area for room in self.rooms)
         return total_area
     
-    def addRoom(self, room):
+    def add_room(self, room):
         self.rooms.append(room)
 
 class Room:
@@ -35,24 +34,24 @@ class Room:
         self.floor = floor
         self.devices = []
         
-    def addDevice(self, device):
+    def add_device(self, device):
         self.devices.append(device)
         
 class Device:
-    def __init__(self, id, supplier, model_name, nickname, deviceType):
+    def __init__(self, id, supplier, model_name, nickname, device_type):
         self.id = id
         self.supplier = supplier
         self.model_name = model_name
         self.nickname = nickname
-        self.deviceType = deviceType
+        self.device_type = device_type
     
     def is_actuator(self):
-        if self.deviceType == 'aktuator':
+        if self.device_Type == 'aktuator':
             return True
         return False
     
     def is_sensor(self):
-        if self.deviceType == 'sensor':
+        if self.device_type == 'sensor':
             return True
         return False
     
@@ -63,11 +62,11 @@ class Sensor(Device):
     def __init__(self, id, producer, model, nickname, unit, deviceType = 'sensor'):
         super().__init__(id, producer, model, nickname, deviceType)
         self.unit = unit
-        self.measureHistory = []
+        self.measure_history = []
         
-    def lastMeasure(self):
-        if self.measureHistory:
-            return self.measureHistory[-1]
+    def last_measure(self):
+        if self.measure_history:
+            return self.measure_history[-1]
         return None
     
     def add_measure(self):
@@ -77,7 +76,7 @@ class Sensor(Device):
         self.add_measure_known(measure)
 
     def add_measure_known(self, Measurement):
-        self.measureHistory.append(Measurement)
+        self.measure_history.append(Measurement)
 
 class Aktuator(Device):
     def __init__(self, id, producer, model, nickname, deviceType = 'aktuator'):
@@ -125,7 +124,7 @@ class SmartHouse:
         at the given floor. Optionally the room may be assigned a mnemonic name.
         """
         room = Room(room_size, floor, room_name)
-        floor.addRoom(room)
+        floor.add_room(room)
         return room
 
 
@@ -146,30 +145,30 @@ class SmartHouse:
         The resulting list has no particular order.
         """
         
-        allRooms = []
+        all_rooms = []
         
         for floor in self.floors:
             for room in floor.rooms:
-                allRooms.append(room)
+                all_rooms.append(room)
         
-        return allRooms
+        return all_rooms
 
 
     def get_area(self):
         """
         This methods return the total area size of the house, i.e. the sum of the area sizes of each room in the house.
         """
-        totalArea = 0
+        total_area = 0
         for floor in self.floors:
-            totalArea += floor.getArea()
+            total_area += floor.get_area()
          
-        return totalArea
+        return total_area
 
     def register_device(self, room, device):
         """
         This methods registers a given device in a given room.
         """
-        room.addDevice(device)
+        room.add_device(device)
         return device
 
     

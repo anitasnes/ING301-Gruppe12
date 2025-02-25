@@ -3,7 +3,8 @@ name: Check assignment code
 on:
   push:
     tags:
-      - 'handin[0-9]+'
+      - 'handin'
+  workflow_dispatch: 
 
 jobs:
   build:
