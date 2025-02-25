@@ -18,6 +18,7 @@ guest_room_2 = DEMO_HOUSE.register_room(second_floor, 8, "Guest Room 2")
 guest_room_3 = DEMO_HOUSE.register_room(second_floor, 10, "Dressing Room")
 dressing_room = DEMO_HOUSE.register_room(second_floor, 4, "Office")
 master_bedroom = DEMO_HOUSE.register_room(second_floor, 17, "Master Bedroom")
+hallway = DEMO_HOUSE.register_room(second_floor, 10, "Hallway")
 
 smart_lock = DEMO_HOUSE.register_device(entrance, Aktuator("4d5f1ac6-906a-4fd1-b4bf-3a0671e4c4f1", "MythicalTech", "Guardian Lock 7000", "Smart Lock"))
 smart_oven = DEMO_HOUSE.register_device(guest_room, Aktuator("8d4e4c98-21a9-4d1e-bf18-523285ad90f6","AetherCorp","Pheonix HEAT 333","Smart Oven"))

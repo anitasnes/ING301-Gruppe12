@@ -21,6 +21,7 @@ class Floor:
         self.rooms = []
         
     def get_area(self):
+        total_area = 0
         total_area = sum(room.area for room in self.rooms)
         return total_area
     
@@ -28,8 +29,8 @@ class Floor:
         self.rooms.append(room)
 
 class Room:
-    def __init__(self, area, floor, name = None):
-        self.name = name
+    def __init__(self, area, floor, room_name = None):
+        self.room_name = room_name
         self.area = area
         self.floor = floor
         self.devices = []
@@ -172,7 +173,7 @@ class SmartHouse:
         return device
 
     
-    def get_device(self, device_id):
+    def get_devices(self, device_id):
         """
         This method retrieves a device object via its id.
         """
