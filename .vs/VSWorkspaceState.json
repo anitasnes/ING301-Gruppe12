@@ -2,8 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\.github",
-    "\\smarthouse",
-    "\\tests"
+    "\\.github\\workflows",
+    "\\smarthouse"
   ],
+  "SelectedNode": "\\smarthouse\\domain.py",
   "PreviewInSolutionExplorer": false
 }

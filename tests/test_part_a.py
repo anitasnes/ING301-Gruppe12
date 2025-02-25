@@ -2,6 +2,8 @@ from unittest import TestCase, main
 from smarthouse.domain import SmartHouse
 from demo_house import DEMO_HOUSE as h
 
+
+
 class TestPartA(TestCase):
 
     # Level 1 Basic: Does registration of floors, rooms, and devices work + simple queries about them
