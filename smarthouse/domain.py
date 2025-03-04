@@ -1,5 +1,5 @@
 from codecs import raw_unicode_escape_decode
-from datetime import time
+from datetime import datetime, time
 import random
 
 
@@ -34,59 +34,72 @@ class Room:
         self.area = area
         self.floor = floor
         self.devices = []
-        
+
     def add_device(self, device):
         self.devices.append(device)
+    
+    def remove_device(self, device):
+        if device in self.devices:
+            device.room = None  
+            self.devices.remove(device)
+
         
 class Device:
-    def __init__(self, id, supplier, model_name, nickname, device_type):
+    def __init__(self, id, supplier, model_name, device_type, category, room = None):
         self.id = id
         self.supplier = supplier
         self.model_name = model_name
-        self.nickname = nickname
         self.device_type = device_type
+        self.category = category
+        self.room = room
     
     def is_actuator(self):
-        if self.device_Type == 'aktuator':
+        if self.category == 'aktuator':
             return True
         return False
     
     def is_sensor(self):
-        if self.device_type == 'sensor':
+        if self.category == 'sensor':
             return True
         return False
     
     def get_device_type(self):
-        return self.nickname
+        return self.device_type
 
 class Sensor(Device):
-    def __init__(self, id, producer, model, nickname, unit, deviceType = 'sensor'):
-        super().__init__(id, producer, model, nickname, deviceType)
+    def __init__(self, id, producer, model, unit, device_type, category = 'sensor'):
+        super().__init__(id, producer, model, device_type, category)
         self.unit = unit
-        self.measure_history = []
+        self.measurement_history = []
         
-    def last_measure(self):
-        if self.measure_history:
-            return self.measure_history[-1]
-        return None
+    def last_measurement(self):
+        if self.measurement_history:
+            return self.measurement_history[-1]
+        else:
+            m = Measurement(datetime.now(), 0.0, self.unit)
+            return m
+        
     
-    def add_measure(self):
-        timestamp = time.time()
+    def add_measurement(self):
+        timestamp = datetime.now()
         value = random.randint(0,100)
-        measure = Measurement(timestamp, value, self.unit)
-        self.add_measure_known(measure)
+        measurement = Measurement(timestamp, value, self.unit)
+        self.add_measurement_known(measurement)
 
-    def add_measure_known(self, Measurement):
-        self.measure_history.append(Measurement)
+    def add_measurement_known(self, Measurement):
+        self.measurement_history.append(Measurement)
 
 class Aktuator(Device):
-    def __init__(self, id, producer, model, nickname, deviceType = 'aktuator'):
-        super().__init__(id, producer, model, nickname, deviceType)
+    def __init__(self, id, producer, model, device_type, category = 'aktuator'):
+        super().__init__(id, producer, model, device_type, category)
         self.state = 0
         
-    def turn_on(self):
-        self.state = True
-    
+    def turn_on(self, value = None):
+        if value == None:
+            self.state = True
+        else:
+            self.state = value
+
     def turn_off(self):
         self.state = False
         
@@ -169,11 +182,15 @@ class SmartHouse:
         """
         This methods registers a given device in a given room.
         """
+        if device.room:
+            device.room.remove_device(device)
+
         room.add_device(device)
+        device.room = room
         return device
 
     
-    def get_devices(self, device_id):
+    def get_device_by_id(self, device_id):
         """
         This method retrieves a device object via its id.
         """
@@ -183,4 +200,11 @@ class SmartHouse:
                     if device.id == device_id:
                         return device
         return None
-
+    
+    def get_devices(self):
+        all_devices = []
+        for floor in self.floors:
+            for room in floor.rooms:
+                for device in room.devices:
+                    all_devices.append(device)
+        return all_devices
