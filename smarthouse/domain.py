@@ -27,6 +27,7 @@ class Floor:
     
     def add_room(self, room):
         self.rooms.append(room)
+    
 
 class Room:
     def __init__(self, area, floor, room_name = None):
@@ -67,23 +68,22 @@ class Device:
         return self.device_type
 
 class Sensor(Device):
-    def __init__(self, id, producer, model, unit, device_type, category = 'sensor'):
+    def __init__(self, id, producer, model, device_type, category = 'sensor'):
         super().__init__(id, producer, model, device_type, category)
-        self.unit = unit
         self.measurement_history = []
         
     def last_measurement(self):
         if self.measurement_history:
             return self.measurement_history[-1]
         else:
-            m = Measurement(datetime.now(), 0.0, self.unit)
+            m = Measurement(datetime.now(), 0.0, "")
             return m
         
     
-    def add_measurement(self):
+    def add_measurement(self, unit):
         timestamp = datetime.now()
-        value = random.randint(0,100)
-        measurement = Measurement(timestamp, value, self.unit)
+        value = random.randint(0,1000)/1.0
+        measurement = Measurement(timestamp, value, unit)
         self.add_measurement_known(measurement)
 
     def add_measurement_known(self, Measurement):
@@ -149,8 +149,10 @@ class SmartHouse:
         registered a basement (level=0), a ground floor (level=1) and a first floor 
         (leve=1), then the resulting list contains these three flors in the above order.
         """
-
-        return sorted(self.floors, key=lambda floor: floor.level)
+        
+        #return sorted(self.floors, key=lambda floor: floor.level)
+        return self.floors
+       
 
 
     def get_rooms(self):

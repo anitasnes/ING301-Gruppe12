@@ -1,6 +1,6 @@
 import sqlite3
 from typing import Optional
-from smarthouse.domain import Measurement
+from smarthouse.domain import Measurement, SmartHouse, Aktuator, Sensor, Floor
 
 class SmartHouseRepository:
     """
@@ -36,9 +36,48 @@ class SmartHouseRepository:
         all referenced objects within the object structure (e.g. floors, rooms, devices) 
         are retrieved as well. 
         """
-        # TODO: START here! remove the following stub implementation and implement this function 
-        #       by retrieving the data from the database via SQL `SELECT` statements.
-        return NotImplemented
+        HOUSE = SmartHouse()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT floor FROM rooms group by floor")
+
+        for row in cursor.fetchall():
+            floor_value = int(row[0])
+            floor = Floor(floor_value)
+            HOUSE.register_floor(floor)
+     
+        cursor.execute("SELECT floor, area, name FROM  rooms")
+        floors_in_house = HOUSE.get_floors()
+        for row in cursor.fetchall():
+            for floor_c in floors_in_house:
+                if floor_c.level == row[0]:
+                    HOUSE.register_room(floor_c, row[1], row[2])
+
+                
+
+        cursor.execute("SELECT r.name, d.id, d.supplier, d.product, d.kind, d.category FROM devices AS d INNER JOIN rooms AS r ON d.room = r.id")
+        rooms = HOUSE.get_rooms()
+        for row in cursor.fetchall():
+            for room in rooms:
+                if(row[0] == room.room_name):
+                    if(row[5] == "actuator"):
+                        device = Aktuator(row[1], row[2], row[3], row[4])
+                        HOUSE.register_device(room,device)
+                    else:
+                        device = Sensor(row[1], row[2], row[3], row[4])
+                        HOUSE.register_device(room,device)
+
+            
+        cursor.execute("SELECT device, ts, value, unit FROM measurements")
+        for row in cursor.fetchall():
+            device = HOUSE.get_device_by_id(row[0])
+            if device:
+                measurement = Measurement(row[1], row[2], row[3])
+                device.add_measurement_known(measurement)
+            else:
+                print(f"Enhet med ID {row[0]} finnes ikke i huset.")
+
+            
+        return HOUSE
 
 
     def get_latest_reading(self, sensor) -> Optional[Measurement]:
