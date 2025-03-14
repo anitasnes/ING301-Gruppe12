@@ -28,6 +28,10 @@ class Floor:
     def add_room(self, room):
         self.rooms.append(room)
     
+    def get_level(self):
+        return self.level
+
+    
 
 class Room:
     def __init__(self, area, floor, room_name = None):
@@ -53,6 +57,7 @@ class Device:
         self.device_type = device_type
         self.category = category
         self.room = room
+        self.measurement_history = []
     
     def is_actuator(self):
         if self.category == 'aktuator':
@@ -66,12 +71,7 @@ class Device:
     
     def get_device_type(self):
         return self.device_type
-
-class Sensor(Device):
-    def __init__(self, id, producer, model, device_type, category = 'sensor'):
-        super().__init__(id, producer, model, device_type, category)
-        self.measurement_history = []
-        
+    
     def last_measurement(self):
         if self.measurement_history:
             return self.measurement_history[-1]
@@ -88,6 +88,16 @@ class Sensor(Device):
 
     def add_measurement_known(self, Measurement):
         self.measurement_history.append(Measurement)
+    
+    
+
+
+class Sensor(Device):
+    def __init__(self, id, producer, model, device_type, category = 'sensor'):
+        super().__init__(id, producer, model, device_type, category)
+        
+        
+    
 
 class Aktuator(Device):
     def __init__(self, id, producer, model, device_type, category = 'aktuator'):

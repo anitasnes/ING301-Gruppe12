@@ -36,46 +36,71 @@ class SmartHouseRepository:
         all referenced objects within the object structure (e.g. floors, rooms, devices) 
         are retrieved as well. 
         """
+        # Smarthouse
         HOUSE = SmartHouse()
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT floor FROM rooms group by floor")
+        print("House lagt til.")
 
+        cursor = self.conn.cursor()
+
+        # Floor
+        cursor.execute("SELECT floor FROM rooms group by floor")
         for row in cursor.fetchall():
             floor_value = int(row[0])
             floor = Floor(floor_value)
             HOUSE.register_floor(floor)
+            print("Floor lagt til.")
      
+        # Room
         cursor.execute("SELECT floor, area, name FROM  rooms")
         floors_in_house = HOUSE.get_floors()
         for row in cursor.fetchall():
-            for floor_c in floors_in_house:
-                if floor_c.level == row[0]:
-                    HOUSE.register_room(floor_c, row[1], row[2])
+            for floor_h in floors_in_house:
+                if floor_h.get_level().level == int(row[0]):
+                    HOUSE.register_room(floor_h, row[1], row[2])
+                    print("Room lagt til.")
 
                 
-
+        # Device
         cursor.execute("SELECT r.name, d.id, d.supplier, d.product, d.kind, d.category FROM devices AS d INNER JOIN rooms AS r ON d.room = r.id")
         rooms = HOUSE.get_rooms()
         for row in cursor.fetchall():
             for room in rooms:
-                if(row[0] == room.room_name):
-                    if(row[5] == "actuator"):
+                if(row[0].lower() == room.room_name.lower()):
+                    if(row[5].strip().lower() == "actuator"):
                         device = Aktuator(row[1], row[2], row[3], row[4])
                         HOUSE.register_device(room,device)
+                        print("Device lagt til.")
                     else:
                         device = Sensor(row[1], row[2], row[3], row[4])
                         HOUSE.register_device(room,device)
+                        print("Device lagt til.")
 
-            
+        
+        # Measurement
         cursor.execute("SELECT device, ts, value, unit FROM measurements")
+        teller = 0
         for row in cursor.fetchall():
             device = HOUSE.get_device_by_id(row[0])
             if device:
-                measurement = Measurement(row[1], row[2], row[3])
+                unit = row[3]
+                
+                # Sjekk enheten før videre behandling
+                print("Enhet før behandling:", unit)
+                
+                if isinstance(unit, bytes):
+                    unit = unit.decode("utf-8")
+                
+                unit = unit.strip()
+                
+                # Hvis enheten er "°C", kan vi spesifisere at den håndteres annerledes, om nødvendig
+                if unit == "°C":
+                    unit = "grader Celsius"
+                
+                # Lag måling
+                measurement = Measurement(str(row[1]), float(row[2]), unit)
                 device.add_measurement_known(measurement)
-            else:
-                print(f"Enhet med ID {row[0]} finnes ikke i huset.")
-
+                teller += 1
+                print("Measurement nr. " + str(teller) + " lagt til.")
             
         return HOUSE
 
