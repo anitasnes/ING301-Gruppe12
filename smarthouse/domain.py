@@ -76,8 +76,7 @@ class Device:
         if self.measurement_history:
             return self.measurement_history[-1]
         else:
-            m = Measurement(datetime.now(), 0.0, "")
-            return m
+            return None
         
     
     def add_measurement(self, unit):

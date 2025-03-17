@@ -1,3 +1,4 @@
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -73,11 +74,11 @@ class SmartHouseRepository:
                     if(row[5].strip().lower() == "actuator"):
                         device = Aktuator(row[1], row[2], row[3], row[4])
                         HOUSE.register_device(room,device)
-                        print("Device lagt til.")
+                        #print("Device lagt til.")
                     else:
                         device = Sensor(row[1], row[2], row[3], row[4])
                         HOUSE.register_device(room,device)
-                        print("Device lagt til.")
+                        #print("Device lagt til.")
 
         
         # Measurement
@@ -89,7 +90,7 @@ class SmartHouseRepository:
                 unit = row[3]
                 
                 # Sjekk enheten før videre behandling
-                print("Enhet før behandling:", unit)
+                #print("Enhet før behandling:", unit)
                 
                 if isinstance(unit, bytes):
                     unit = unit.decode("utf-8")
@@ -104,7 +105,9 @@ class SmartHouseRepository:
                 measurement = Measurement(str(row[1]), float(row[2]), unit)
                 device.add_measurement_known(measurement)
                 teller += 1
+
                 print("Measurement nr. " + str(teller) + " lagt til.")
+
 
         # ActuatorState
         cursor.execute("SELECT id, state FROM ActuatorState")
@@ -119,8 +122,8 @@ class SmartHouseRepository:
         Retrieves the most recent sensor reading for the given sensor if available.
         Returns None if the given object has no sensor readings.
         """
-        # TODO: After loading the smarthouse, continue here
-        return NotImplemented
+        
+        return sensor.last_measurement()
 
 
     def update_actuator_state(self, actuator):
@@ -146,9 +149,41 @@ class SmartHouseRepository:
         The result should be a dictionary where the keys are strings representing dates (iso format) and 
         the values are floating point numbers containing the average temperature that day.
         """
-        # TODO: This and the following statistic method are a bit more challenging. Try to design the respective 
-        #       SQL statements first in a SQL editor like Dbeaver and then copy it over here.  
-        return NotImplemented
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id FROM rooms WHERE name = ?", (room.room_name,))
+        
+        rows =  cursor.fetchall()
+        if rows:
+            room_id = rows[0][0]
+
+        if (from_date is None):
+            from_date = "0001-01-01 00:00:00"
+        else:
+            from_date = from_date + " 00:00:00"
+        if (until_date is None):
+            until_date = "9999-12-31 23:59:59"
+        else:
+            until_date = until_date + " 23:59:59"
+
+
+        cursor.execute("""
+                       SELECT m.ts, AVG(m.value) AS avg_temp 
+                       FROM devices d INNER JOIN measurements m
+                       ON d.id = m.device
+                       WHERE m.unit = '°C' AND d.room = ? AND m.ts >= ? AND m.ts <= ?
+                       GROUP BY d.room, DATE(m.ts)  ORDER BY m.ts
+                       """, (room_id, from_date, until_date))
+        
+        avg_temperatures = {}
+
+        for row in cursor.fetchall():
+            timestamp = row[0]
+            date_str = timestamp.split(" ")[0]
+
+            avg_temperatures[date_str] = row[1]
+
+        return avg_temperatures
+
 
     
     def calc_hours_with_humidity_above(self, room, date: str) -> list:
