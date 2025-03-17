@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
 import sqlite3
 from typing import Optional
 from smarthouse.domain import Measurement, SmartHouse, Aktuator, Sensor, Floor
@@ -118,12 +122,11 @@ class SmartHouseRepository:
         """
         Saves the state of the given actuator in the database. 
         """
-        # TODO: Implement this method. You will probably need to extend the existing database structure: e.g.
-        #       by creating a new table (`CREATE`), adding some data to it (`INSERT`) first, and then issue
-        #       and SQL `UPDATE` statement. Remember also that you will have to call `commit()` on the `Connection`
-        #       stored in the `self.conn` instance variable.
-        pass
-
+        cursor = self.conn.cursor()
+        new_state = "active" if actuator.is_active() else "not active"
+        cursor.execute("INSERT INTO ActuatorState(id, state) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET state = excluded.state;", (actuator.id, new_state))
+        self.conn.commit()
+        cursor.close()
 
     # statistics
 
