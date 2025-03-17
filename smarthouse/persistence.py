@@ -43,7 +43,6 @@ class SmartHouseRepository:
         """
         # Smarthouse
         HOUSE = SmartHouse()
-        print("House lagt til.")
 
         cursor = self.conn.cursor()
 
@@ -53,7 +52,6 @@ class SmartHouseRepository:
             floor_value = int(row[0])
             floor = Floor(floor_value)
             HOUSE.register_floor(floor)
-            print("Floor lagt til.")
      
         # Room
         cursor.execute("SELECT floor, area, name FROM  rooms")
@@ -62,7 +60,6 @@ class SmartHouseRepository:
             for floor_h in floors_in_house:
                 if floor_h.get_level().level == int(row[0]):
                     HOUSE.register_room(floor_h, row[1], row[2])
-                    print("Room lagt til.")
 
                 
         # Device
@@ -74,11 +71,9 @@ class SmartHouseRepository:
                     if(row[5].strip().lower() == "actuator"):
                         device = Aktuator(row[1], row[2], row[3], row[4])
                         HOUSE.register_device(room,device)
-                        #print("Device lagt til.")
                     else:
                         device = Sensor(row[1], row[2], row[3], row[4])
                         HOUSE.register_device(room,device)
-                        #print("Device lagt til.")
 
         
         # Measurement
@@ -106,7 +101,6 @@ class SmartHouseRepository:
                 device.add_measurement_known(measurement)
                 teller += 1
 
-                print("Measurement nr. " + str(teller) + " lagt til.")
 
 
         # ActuatorState
