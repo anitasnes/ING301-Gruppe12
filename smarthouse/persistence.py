@@ -187,6 +187,45 @@ class SmartHouseRepository:
         the average recorded humidity in that room at that particular time.
         The result is a (possibly empty) list of number representing hours [0-23].
         """
-        # TODO: implement
-        return NotImplemented
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id FROM rooms WHERE name = ?", (room.room_name,))
+        
+        rows =  cursor.fetchall()
+        if rows:
+            room_id = rows[0][0]
+
+
+        cursor.execute("""
+                       SELECT AVG(m.value)
+                       FROM devices d INNER JOIN measurements m
+                       ON d.id = m.device
+                       WHERE m.unit = '%' AND d.room = ?
+                       GROUP BY DATE(m.ts)
+                       HAVING DATE(m.ts) = ?
+                       """,(room_id, date))
+
+        rows =  cursor.fetchall()
+        if rows:
+            avg_humidity = rows[0][0]
+        
+
+        cursor.execute("""
+                       SELECT strftime('%H', m.ts)
+                       FROM devices d INNER JOIN measurements m
+                       ON d.id = m.device
+                       WHERE m.unit = '%' AND d.room = ? AND m.value >= ? AND DATE(m.ts) = ?
+                       GROUP BY strftime('%H', m.ts)
+                       HAVING COUNT(*) > 3
+                       """,(room_id, avg_humidity, date))
+        
+        hours = []
+        for row in cursor.fetchall():
+            if row[0]:
+                hours.append(int(row[0]))
+
+        if not hours:
+            return []
+
+        return sorted(hours)
 
