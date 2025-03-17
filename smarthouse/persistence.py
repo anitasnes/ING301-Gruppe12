@@ -105,6 +105,12 @@ class SmartHouseRepository:
                 device.add_measurement_known(measurement)
                 teller += 1
                 print("Measurement nr. " + str(teller) + " lagt til.")
+
+        # ActuatorState
+        cursor.execute("SELECT id, state FROM ActuatorState")
+        for row in cursor.fetchall():
+            device = HOUSE.get_device_by_id(row[0])
+            device.state = row[1]
             
         return HOUSE
 
@@ -123,8 +129,8 @@ class SmartHouseRepository:
         Saves the state of the given actuator in the database. 
         """
         cursor = self.conn.cursor()
-        new_state = "active" if actuator.is_active() else "not active"
-        cursor.execute("INSERT INTO ActuatorState(id, state) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET state = excluded.state;", (actuator.id, new_state))
+        new_state = 1 if actuator.is_active() else 0
+        cursor.execute("UPDATE ActuatorState SET state = ? WHERE id = ?;", (new_state, actuator.id))
         self.conn.commit()
         cursor.close()
 
