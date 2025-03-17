@@ -111,9 +111,8 @@ class SmartHouseRepository:
         for row in cursor.fetchall():
             device = HOUSE.get_device_by_id(row[0])
             device.state = row[1]
-            
-        return HOUSE
 
+        return HOUSE
 
     def get_latest_reading(self, sensor) -> Optional[Measurement]:
         """
