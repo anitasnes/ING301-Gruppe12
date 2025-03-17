@@ -110,8 +110,8 @@ class SmartHouseRepository:
         Retrieves the most recent sensor reading for the given sensor if available.
         Returns None if the given object has no sensor readings.
         """
-        # TODO: After loading the smarthouse, continue here
-        return NotImplemented
+        
+        return sensor.last_measurement()
 
 
     def update_actuator_state(self, actuator):
