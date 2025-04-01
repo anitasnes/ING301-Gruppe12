@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "SmartHouse API Suite",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

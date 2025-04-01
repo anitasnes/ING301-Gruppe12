@@ -1,0 +1,18 @@
+meta {
+  name: Get SmartHouse Metadata
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8000/smarthouse
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.no_rooms: eq 12
+  res.body.no_floors: eq 2
+  res.body.registered_devices: eq 14
+}
