@@ -58,6 +58,9 @@ class Device:
         self.category = category
         self.room = room
         self.measurement_history = []
+
+    def getId(self):
+        return self.id
     
     def is_actuator(self):
         if self.category == 'aktuator':

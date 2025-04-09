@@ -50,6 +50,19 @@ def get_smarthouse_info() -> dict[str, int | float]:
         "area": smarthouse.get_area()
     }
 
+@app.get("/smarthouse/devices")
+def get_device_info():
+    devices = smarthouse.get_devices()
+
+    result = []
+    for device in devices:
+        result.append({
+        "id": device.getId()
+    })
+    return result
+
+    
+
 # TODO: implement the remaining HTTP endpoints as requested in
 # https://github.com/selabhvl/ing301-projectpartC-startcode?tab=readme-ov-file#oppgavebeskrivelse
 # here ...
