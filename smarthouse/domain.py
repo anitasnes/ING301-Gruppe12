@@ -2,7 +2,6 @@ from codecs import raw_unicode_escape_decode
 from datetime import datetime, time
 import random
 
-
 class Measurement:
     """
     This class represents a measurement taken from a sensor.
@@ -12,8 +11,6 @@ class Measurement:
         self.timestamp = timestamp
         self.value = value
         self.unit = unit
-
-
 
 class Floor:
     def __init__(self, level):
@@ -31,8 +28,6 @@ class Floor:
     def get_level(self):
         return self.level
 
-    
-
 class Room:
     def __init__(self, area, floor, room_name = None):
         self.room_name = room_name
@@ -47,7 +42,6 @@ class Room:
         if device in self.devices:
             device.room = None  
             self.devices.remove(device)
-
         
 class Device:
     def __init__(self, id, supplier, model_name, device_type, category, room = None):
@@ -77,7 +71,6 @@ class Device:
             return self.measurement_history[-1]
         else:
             return None
-        
     
     def add_measurement(self, unit):
         timestamp = datetime.now()
@@ -87,16 +80,10 @@ class Device:
 
     def add_measurement_known(self, Measurement):
         self.measurement_history.append(Measurement)
-    
-    
-
 
 class Sensor(Device):
     def __init__(self, id, producer, model, device_type, category = 'sensor'):
         super().__init__(id, producer, model, device_type, category)
-        
-        
-    
 
 class Aktuator(Device):
     def __init__(self, id, producer, model, device_type, category = 'aktuator'):
@@ -140,7 +127,6 @@ class SmartHouse:
         self.floors.append(floor)
         return floor
         
-
     def register_room(self, floor, room_size, room_name = None):
         """
         This methods registers a new room with the given room areal size 
@@ -149,7 +135,6 @@ class SmartHouse:
         room = Room(room_size, floor, room_name)
         floor.add_room(room)
         return room
-
 
     def get_floors(self):
         """
@@ -162,8 +147,6 @@ class SmartHouse:
         #return sorted(self.floors, key=lambda floor: floor.level)
         return self.floors
        
-
-
     def get_rooms(self):
         """
         This methods returns the list of all registered rooms in the house.
@@ -177,7 +160,6 @@ class SmartHouse:
                 all_rooms.append(room)
         
         return all_rooms
-
 
     def get_area(self):
         """
@@ -200,7 +182,6 @@ class SmartHouse:
         device.room = room
         return device
 
-    
     def get_device_by_id(self, device_id):
         """
         This method retrieves a device object via its id.

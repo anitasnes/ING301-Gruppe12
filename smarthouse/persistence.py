@@ -39,7 +39,7 @@ class SmartHouseRepository:
         This method retrives the complete single instance of the _SmartHouse_ 
         object stored in this database. The retrieval yields a _deep_ copy, i.e.
         all referenced objects within the object structure (e.g. floors, rooms, devices) 
-        are retrieved as well. 
+        are retrieved as well.
         """
         # Smarthouse
         HOUSE = SmartHouse()
