@@ -11,6 +11,13 @@ class Measurement:
         self.timestamp = timestamp
         self.value = value
         self.unit = unit
+    
+    def info(self):
+        return{
+            "timestamp": self.timestamp,
+            "value": self.value,
+            "unit": self.unit
+        }
 
 class Floor:
     def __init__(self, level):
@@ -53,6 +60,17 @@ class Device:
         self.room = room
         self.measurement_history = []
     
+    def info(self):
+        return {
+            "id": self.id,
+            "supplier": self.supplier,
+            "model_name": self.model_name,
+            "device_type": self.device_type,
+            "category": self.category,
+            "room": self.room.room_name,
+            "measurements": self.measurement_history[0]
+        }
+    
     def is_actuator(self):
         if self.category == 'aktuator':
             return True
@@ -67,16 +85,24 @@ class Device:
         return self.device_type
     
     def last_measurement(self):
-        if self.measurement_history:
-            return self.measurement_history[-1]
-        else:
-            return None
+        if not self.measurement_history:
+            return {"Last measurement": None}
+
+        latest = max(
+            self.measurement_history,
+            key=lambda m: datetime.fromisoformat(m.timestamp)
+        )
+        return {
+            "Last measurement": latest.info()
+        }
+       
     
     def add_measurement(self, unit):
         timestamp = datetime.now()
         value = random.randint(0,1000)/1.0
         measurement = Measurement(timestamp, value, unit)
         self.add_measurement_known(measurement)
+        return measurement
 
     def add_measurement_known(self, Measurement):
         self.measurement_history.append(Measurement)

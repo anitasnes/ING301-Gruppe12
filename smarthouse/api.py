@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
+from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -126,6 +127,61 @@ def get_floor(Level: int, id: int):
         "area": area,
         "floor": floor_level
     }
+
+@app.get("/smarthouse/devices")
+def get_devices():
+    devices = smarthouse.get_devices()
+    result = [d.info() for d in devices]
+    
+
+    return {
+            "Devices: ": result
+        }
+
+@app.get("/smarthouse/devices/{id}")
+def get_devices(id: str):
+    device = smarthouse.get_device_by_id(id)  
+
+    return {
+            "Devices: ": device.info()
+        }
+
+
+@app.get("/smarthouse/sensor/{id}/current")
+def get_current_sensor(id: str):
+    device = smarthouse.get_device_by_id(id)
+
+    return {
+            "Device: ": device.last_measurement()
+        }
+        
+@app.get("/smarthouse/sensor/{id}/{limit}")
+def get_n_latest(id: str, limit: int):
+    device = smarthouse.get_device_by_id(id)
+    
+    readings = device.measurement_history
+    readings = sorted(readings, key=lambda m:datetime.fromisoformat(m.timestamp),
+                      reverse=True
+        )
+    
+    result = []
+    for i in range(limit):
+        result.append(readings[i].info())
+
+    return {
+        "Latest readings:": result
+    }
+    
+@app.delete("/smarthouse/sensor/{id}/oldest")
+def delete_oldest(id:str):
+    device = smarthouse.get_device_by_id(id)
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     uvicorn.run(app, host="127.0.0.1", port=8000)
