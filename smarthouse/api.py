@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from smarthouse.persistence import SmartHouseRepository
@@ -65,8 +65,8 @@ def get_all_floors():
         for floor in floors
     ]
 
-@app.get("/smarthouse/floor/{Level}")
-def get_floor(Level: int):
+@app.get("/smarthouse/floor/{fid}")
+def get_floor(fid: int):
     """
     This endpoint returns an object that provides information
     about the chosen floor of the smarthouse.
@@ -80,11 +80,11 @@ def get_floor(Level: int):
             "floor_area": floor.get_area()
         }
         for floor in floors
-        if floor.get_level().level == Level
+        if floor.get_level().level == fid
     ]
 
-@app.get("/smarthouse/floor/{Level}/room")
-def get_floor(Level: int):
+@app.get("/smarthouse/floor/{fid}/room")
+def get_rooms_by_floor(fid: int):
     """
     This endpoint returns an object that provides information
     about the rooms on chosen floor of the smarthouse.
@@ -99,18 +99,18 @@ def get_floor(Level: int):
             "floor": room.floor.get_level().level
         }
         for room in rooms
-        if room.floor.get_level().level == Level
+        if room.floor.get_level().level == fid
     ]
 
-@app.get("/smarthouse/floor/{Level}/room/{id}")
-def get_floor(Level: int, id: int):
+@app.get("/smarthouse/floor/{fid}/room/{rid}")
+def get_room_by_id(fid: int, rid: int):
     """
     This endpoint returns an object that provides information
     about a specified roomd on the chosen floor of the smarthouse.
     """
 
     cursor = repo.cursor()
-    cursor.execute("SELECT id, floor, area, name FROM rooms WHERE id = ?", (id,))
+    cursor.execute("SELECT id, floor, area, name FROM rooms WHERE id = ?", (rid,))
     room_data = cursor.fetchone()
 
     if not room_data:
@@ -118,7 +118,7 @@ def get_floor(Level: int, id: int):
     
     room_id, floor_level, area, name = room_data
 
-    if floor_level != Level:
+    if floor_level != fid:
         return {"error": "Room is not on the specified floor"}
     
     return {
@@ -126,6 +126,52 @@ def get_floor(Level: int, id: int):
         "area": area,
         "floor": floor_level
     }
+
+@app.get("/smarthouse/actuator/{uuid}/current")
+def get_actuator_state(uuid: str):
+    """
+    This endpoint returns an object that provides information
+    about the current state of the actuator.
+    """
+
+    devices = smarthouse.get_devices()
+
+    for device in devices:
+        if device.id == uuid:
+            if not device.is_actuator():
+                return {"error": f"Device {uuid} is not an actuator"}
+            
+            return {
+                "actuator_number": device.id,
+                "actuator_state": device.state
+            }
+        
+    return {"error": f"No actuator with ID {uuid} found"}
+
+@app.put("/smarthouse/device/{uuid}")
+def update_actuator_state(uuid: str):
+    """
+    This endpoint returns an object that provides information
+    about the current state of the actuator.
+    """
+
+    devices = smarthouse.get_devices()
+
+    for device in devices:
+        if device.id == uuid:
+            if not device.is_actuator():
+                return {"error": f"Device {uuid} is not an actuator"}
+            
+            if device.is_active():
+                device.turn_off()
+            else:
+                device.turn_on()
+
+            return {
+                "message": f"Actuator {uuid} updated successfully",
+                "actuator_state": device.state
+            }
+    return {"error": f"No actuator with ID {uuid} found"}
 
 if __name__ == '__main__':
     uvicorn.run(app, host="127.0.0.1", port=8000)
