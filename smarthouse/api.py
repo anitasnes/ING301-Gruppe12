@@ -5,9 +5,11 @@ sys.path.append(str(Path(__file__).parent.parent))
 from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
+from fastapi import Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from smarthouse.persistence import SmartHouseRepository
+from smarthouse.domain import Measurement
 from pathlib import Path
 import os
 
@@ -154,16 +156,31 @@ def get_current_sensor(id: str):
     return {
             "Device: ": device.last_measurement()
         }
+
+@app.delete("/smarthouse/sensor/{id}/oldest")
+def delete_oldest(id:str):
+    device = smarthouse.get_device_by_id(id)
+
+    readings = device.measurement_history
+    oldest = min(readings, key=lambda m:datetime.fromisoformat(m.timestamp))
+
+    device.measurement_history.remove(oldest)
+
+    return{
+        "message": "Oldest measurement deleted",
+        "deleted": oldest.info()  # hvis .info() returnerer info om målingen
+           }
         
-@app.get("/smarthouse/sensor/{id}/{limit}")
-def get_n_latest(id: str, limit: int):
+@app.get("/smarthouse/sensor/{id}/values")
+def get_n_latest(id: str, limit: int = Query(..., gt=0)):
     device = smarthouse.get_device_by_id(id)
     
     readings = device.measurement_history
-    readings = sorted(readings, key=lambda m:datetime.fromisoformat(m.timestamp),
-                      reverse=True
-        )
-    
+    readings = sorted(readings, key=lambda m: m.timestamp, reverse=True)
+
+    if(limit > len(readings)):
+        limit = len(readings)
+
     result = []
     for i in range(limit):
         result.append(readings[i].info())
@@ -171,10 +188,30 @@ def get_n_latest(id: str, limit: int):
     return {
         "Latest readings:": result
     }
-    
-@app.delete("/smarthouse/sensor/{id}/oldest")
-def delete_oldest(id:str):
+
+@app.post("/smarthouse/sensor/{id}/current")
+def add_measurement(id: str, timestamp: str, value: float, unit: str, addRandom: bool):
     device = smarthouse.get_device_by_id(id)
+
+    if(addRandom):
+        new_ms = device.add_measurement(unit)
+
+        return{
+            "message" : "Random measurement added",
+            "measurement": new_ms.info()
+        }
+    else:
+        new_ms = Measurement(timestamp, value, unit)
+        device.add_measurement_known(new_ms)
+
+        return{
+            "message": "Measurement added",
+            "measurement": new_ms.info() 
+        }
+    
+
+
+    
 
 
 

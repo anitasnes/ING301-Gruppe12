@@ -99,8 +99,9 @@ class Device:
     
     def add_measurement(self, unit):
         timestamp = datetime.now()
+        timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
         value = random.randint(0,1000)/1.0
-        measurement = Measurement(timestamp, value, unit)
+        measurement = Measurement(timestamp_str, value, unit)
         self.add_measurement_known(measurement)
         return measurement
 
